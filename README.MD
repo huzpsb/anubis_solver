@@ -2,6 +2,8 @@ Anubis Solver
 ---
 A zero-dependency, single-file, Java-8 compatible CLI tool to solve Anubis Web AI Firewall challenges.  
 Works for challenge type meta-refresh only.  
+Any graduate-level student should be able to implement the PoW solver independently. 
+
 [Anubis](https://github.com/TecharoHQ/anubis)
 
 ````log
@@ -31,7 +33,7 @@ Works for challenge type meta-refresh only.
 (omitted for clearance)
 ````
 
-By the time i wrote this, this solver works on the official website of Anubis.  
-I am too lazy to test it on more environments.  
-For education purpose only. 
+At the time of writing, this solver was working on Anubis's official website.  
+I was too lazy to test it in other environments.  
+For educational purposes only.
 
