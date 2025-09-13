@@ -34,7 +34,7 @@ public class Main {
         muteSSL();
         print("[+] Fetching challenge phase #1...");
         Result getChallenge = fetch(challengeEndpoint, null);
-        print("[+] Solving challenge phase #2...");
+        print("[+] Solving challenge phase #1...");
         int lIdx = getChallenge.body.indexOf("url=/");
         int rIdx = getChallenge.body.indexOf("\"><", lIdx);
         String middle = getChallenge.body.substring(lIdx + 5, rIdx);
@@ -48,7 +48,7 @@ public class Main {
         print("[+] Solving challenge phase #3...");
         Thread.sleep(1000); // Zzz
         print("[*] All set ;) Use this cookie will kill anubis ↓");
-        print("finalCookie");
+        print(finalCookie);
         print("[*] See it work:");
         Result finalResult = fetch(challengeEndpoint, finalCookie);
         print(finalResult.body);
