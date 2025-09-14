@@ -123,6 +123,21 @@ public class Main {
                 Result getCookie = fetch(getCookieUrl, getChallenge.cookie);
                 finalCookie = getChallenge.cookie + "; " + getCookie.cookie;
                 Thread.sleep(SLEEP);
+            } else if (getChallenge.body.contains("\"algorithm\":\"preact\"")) {
+                int lIdx = getChallenge.body.indexOf("\"randomData\":\"");
+                int rIdx = getChallenge.body.indexOf("\",\"", lIdx);
+                String middle = getChallenge.body.substring(lIdx + 14, rIdx);
+
+                lIdx = getChallenge.body.indexOf("\"id\":\"");
+                rIdx = getChallenge.body.indexOf("\",\"", lIdx);
+                String id = getChallenge.body.substring(lIdx + 6, rIdx);
+
+                String solved = bytesToHex(sha256(middle));
+                Thread.sleep(SLEEP);
+
+                String getCookieUrl = challengeEndpoint + ".within.website/x/cmd/anubis/api/pass-challenge?id=" + id + "&result=" + solved + "&redir=%2F";
+                Result getCookie = fetch(getCookieUrl, getChallenge.cookie);
+                finalCookie = getChallenge.cookie + "; " + getCookie.cookie;
             } else {
                 int lIdx = getChallenge.body.indexOf("\"challenge\":\"");
                 int rIdx = getChallenge.body.indexOf("\"", lIdx + 13);
