@@ -15,7 +15,7 @@ Solves the 50$ tier PoW within 20ms.
 [2025-09-14 16:45:49.359]         \/     \/          \/        \/        \/                      \/       
 [2025-09-14 16:45:49.359] [*] Challenge Endpoint: https://fabulous.systems/
 [2025-09-14 16:45:49.359] [*] Muting SSL verification...
-[2025-09-14 16:45:52.244] [*] PoW solved in 244 ms, lmfao
+[2025-09-14 16:45:52.244] [*] PoW solved in 14 ms, lmfao
 [2025-09-14 16:45:56.674] <!DOCTYPE html>
 [2025-09-14 16:45:56.674] <html lang="en-us">
 [2025-09-14 16:45:56.674] <head>
@@ -34,6 +34,7 @@ Solves the 50$ tier PoW within 20ms.
 At the time of writing, this solver was working on Anubis's official website and all its sponsors.  
 I was too lazy to test it in other environments.  
 For educational purposes only.
+
 
 
 
