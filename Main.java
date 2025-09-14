@@ -6,13 +6,26 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final int THREADS = 8;
+    private static final int SLEEP = 1000;
+    private static final ExecutorService es = Executors.newCachedThreadPool((r) -> {
+        Thread t = new Thread(r);
+        t.setDaemon(true);
+        return t;
+    });
 
     private static void print(String str) {
         String[] lines = str.split("\n");
@@ -21,53 +34,136 @@ public class Main {
         }
     }
 
+    // Performance in mind: stupid JCE looks up algorithms in a synchronized map bruh
+    private static final ThreadLocal<MessageDigest> threadLocalDigest = ThreadLocal.withInitial(() -> {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    });
+
+    private static byte[] sha256(String input) {
+        try {
+            MessageDigest digest = threadLocalDigest.get();
+            digest.reset();
+            return digest.digest(input.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    private static int solvePoW(String challenge, int req) {
+        final VolatileReference<Boolean> solved = new VolatileReference<>(false);
+        final VolatileReference<Integer> result = new VolatileReference<>(null);
+        final AtomicInteger nonce = new AtomicInteger(0);
+        final CountDownLatch latch = new CountDownLatch(THREADS);
+        for (int i = 0; i < THREADS; i++) {
+            es.submit(() -> {
+                s:
+                while (true) {
+                    if (solved.get()) {
+                        break s;
+                    }
+
+                    int currentNonce = nonce.getAndIncrement();
+                    if (currentNonce >= Integer.MAX_VALUE - THREADS) {
+                        break s;
+                    }
+
+                    String attempt = challenge + currentNonce;
+                    byte[] hash = sha256(attempt);
+
+                    for (int j = 0; j < req; j++) {
+                        if (hash[j] != 0) {
+                            continue s;
+                        }
+                    }
+                    solved.set(true);
+                    result.set(currentNonce);
+                    break s;
+                }
+                latch.countDown();
+            });
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return result.get();
+    }
+
     public static void main(String[] args) throws Exception {
-        print("   _____              ___.   .__         _________      .__                     \n" +
-                "  /  _  \\   ____  __ _\\_ |__ |__| ______/   _____/ ____ |  |___  __ ___________ \n" +
-                " /  /_\\  \\ /    \\|  |  \\ __ \\|  |/  ___/\\_____  \\ /  _ \\|  |\\  \\/ // __ \\_  __ \\\n" +
-                "/    |    \\   |  \\  |  / \\_\\ \\  |\\___ \\ /        (  <_> )  |_\\   /\\  ___/|  | \\/\n" +
-                "\\____|__  /___|  /____/|___  /__/____  >_______  /\\____/|____/\\_/  \\___  >__|   \n" +
-                "        \\/     \\/          \\/        \\/        \\/                      \\/       ");
-        final String challengeEndpoint = "https://anubis.techaro.lol/";
+        print("   _____              ___.   .__         _________      .__                     \n" + "  /  _  \\   ____  __ _\\_ |__ |__| ______/   _____/ ____ |  |___  __ ___________ \n" + " /  /_\\  \\ /    \\|  |  \\ __ \\|  |/  ___/\\_____  \\ /  _ \\|  |\\  \\/ // __ \\_  __ \\\n" + "/    |    \\   |  \\  |  / \\_\\ \\  |\\___ \\ /        (  <_> )  |_\\   /\\  ___/|  | \\/\n" + "\\____|__  /___|  /____/|___  /__/____  >_______  /\\____/|____/\\_/  \\___  >__|   \n" + "        \\/     \\/          \\/        \\/        \\/                      \\/       ");
+        final String challengeEndpoint = "https://canine.tools/";
+
         print("[*] Challenge Endpoint: " + challengeEndpoint);
         print("[*] Muting SSL verification...");
         muteSSL();
-        print("[+] Fetching challenge phase #1...");
         Result getChallenge = fetch(challengeEndpoint, null);
-        print("[+] Solving challenge phase #1...");
-        int lIdx = getChallenge.body.indexOf("url=/");
-        int rIdx = getChallenge.body.indexOf("\"><", lIdx);
-        String middle = getChallenge.body.substring(lIdx + 5, rIdx);
-        String getCookieUrl = challengeEndpoint + middle.replace("&amp;", "&");
-        Thread.sleep(1000); // Zzz
-        print("[+] Fetching challenge phase #2...");
-        Result getCookie = fetch(getCookieUrl, getChallenge.cookie);
-        print("[+] Solving challenge phase #2...");
-        print("[-] No additional computation needed, skipped fetching phase #3...");
-        String finalCookie = getChallenge.cookie + "; " + getCookie.cookie;
-        print("[+] Solving challenge phase #3...");
-        Thread.sleep(1000); // Zzz
-        print("[*] All set ;) Use this cookie will kill anubis ↓");
-        print(finalCookie);
-        print("[*] See it work:");
+
+        String finalCookie = null;
+
+        try {
+            if (getChallenge.body.contains("\"algorithm\":\"metarefresh\"")) {
+                int lIdx = getChallenge.body.indexOf("url=/");
+                int rIdx = getChallenge.body.indexOf("\"><", lIdx);
+                String middle = getChallenge.body.substring(lIdx + 5, rIdx);
+                String getCookieUrl = challengeEndpoint + middle.replace("&amp;", "&");
+                Thread.sleep(SLEEP);
+                Result getCookie = fetch(getCookieUrl, getChallenge.cookie);
+                finalCookie = getChallenge.cookie + "; " + getCookie.cookie;
+                Thread.sleep(SLEEP);
+            } else {
+                int lIdx = getChallenge.body.indexOf("\"challenge\":\"");
+                int rIdx = getChallenge.body.indexOf("\"", lIdx + 13);
+                String middle = getChallenge.body.substring(lIdx + 13, rIdx);
+
+                lIdx = getChallenge.body.indexOf("\"difficulty\":");
+                rIdx = getChallenge.body.indexOf(",", lIdx + 13);
+                int req = Integer.parseInt(getChallenge.body.substring(lIdx + 13, rIdx).trim());
+                long now = System.currentTimeMillis();
+                int ans = solvePoW(middle, req);
+                print("[*] PoW solved in " + (System.currentTimeMillis() - now) + " ms, lmfao");
+                byte[] hash = sha256(middle + ans);
+                String hashHex = bytesToHex(hash);
+                Thread.sleep(SLEEP);
+                String getCookieUrl = challengeEndpoint + ".within.website/x/cmd/anubis/api/pass-challenge?response=" + hashHex + "&nonce=" + ans + "&elapsedTime=10&redir=%2F";
+                Result getCookie = fetch(getCookieUrl, getChallenge.cookie);
+                finalCookie = getChallenge.cookie + "; " + getCookie.cookie;
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (finalCookie == null) {
+            throw new IllegalStateException("Failed to obtain final cookie.");
+        }
+
         Result finalResult = fetch(challengeEndpoint, finalCookie);
         print(finalResult.body);
     }
 
     private static void muteSSL() throws Exception {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
+        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
 
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    }
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
 
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    }
-                }
-        };
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        }};
 
         SSLContext sc = SSLContext.getInstance("SSL");
         sc.init(null, trustAllCerts, new java.security.SecureRandom());
@@ -136,5 +232,25 @@ public class Main {
             this.body = body;
         }
     }
-}
 
+    private static class VolatileReference<T> {
+        final Object lock = new Object();
+        T value;
+
+        T get() {
+            synchronized (lock) {
+                return value;
+            }
+        }
+
+        void set(T value) {
+            synchronized (lock) {
+                this.value = value;
+            }
+        }
+
+        VolatileReference(T value) {
+            this.value = value;
+        }
+    }
+}
