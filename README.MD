@@ -1,40 +1,30 @@
 Anubis Solver
 ---
 A zero-dependency, single-file, Java-8 compatible CLI tool to solve Anubis Web AI Firewall challenges.  
-Works for challenge type meta-refresh only.  
-Any primary-school student should be able to implement the PoW solver independently. 
+He rilly pissed me in some way.  
+Solves the 50$ tier PoW within 20ms.
 
 [Anubis](https://github.com/TecharoHQ/anubis)
 
 ````log
-[2025-09-14 03:37:09.494]    _____              ___.   .__         _________      .__                     
-[2025-09-14 03:37:09.494]   /  _  \   ____  __ _\_ |__ |__| ______/   _____/ ____ |  |___  __ ___________ 
-[2025-09-14 03:37:09.494]  /  /_\  \ /    \|  |  \ __ \|  |/  ___/\_____  \ /  _ \|  |\  \/ // __ \_  __ \
-[2025-09-14 03:37:09.494] /    |    \   |  \  |  / \_\ \  |\___ \ /        (  <_> )  |_\   /\  ___/|  | \/
-[2025-09-14 03:37:09.494] \____|__  /___|  /____/|___  /__/____  >_______  /\____/|____/\_/  \___  >__|   
-[2025-09-14 03:37:09.494]         \/     \/          \/        \/        \/                      \/       
-[2025-09-14 03:37:09.494] [*] Challenge Endpoint: https://anubis.techaro.lol/
-[2025-09-14 03:37:09.494] [*] Muting SSL verification...
-[2025-09-14 03:37:09.838] [+] Fetching challenge phase #1...
-[2025-09-14 03:37:10.890] [+] Solving challenge phase #1...
-[2025-09-14 03:37:11.900] [+] Fetching challenge phase #2...
-[2025-09-14 03:37:12.725] [+] Solving challenge phase #2...
-[2025-09-14 03:37:12.725] [-] No additional computation needed, skipped fetching phase #3...
-[2025-09-14 03:37:12.725] [+] Solving challenge phase #3...
-[2025-09-14 03:37:13.735] [*] All set ;) Use this cookie will kill anubis ↓
-[2025-09-14 03:37:13.735] finalCookie
-[2025-09-14 03:37:13.735] [*] See it work:
-[2025-09-14 03:37:14.619] <!doctype html>
-[2025-09-14 03:37:14.619] <html lang="en" dir="ltr" class="plugin-pages plugin-id-default" data-has-hydrated="false">
-[2025-09-14 03:37:14.619] <head>
-[2025-09-14 03:37:14.619] <meta charset="UTF-8">
-[2025-09-14 03:37:14.619] <meta name="generator" content="Docusaurus v3.8.1">
-[2025-09-14 03:37:14.619] <title data-rh="true">Anubis: Web AI Firewall Utility | Anubis</title><meta data-rh="true" name="viewport"
+[2025-09-14 16:35:22.063]    _____              ___.   .__         _________      .__                     
+[2025-09-14 16:35:22.063]   /  _  \   ____  __ _\_ |__ |__| ______/   _____/ ____ |  |___  __ ___________ 
+[2025-09-14 16:35:22.063]  /  /_\  \ /    \|  |  \ __ \|  |/  ___/\_____  \ /  _ \|  |\  \/ // __ \_  __ \
+[2025-09-14 16:35:22.063] /    |    \   |  \  |  / \_\ \  |\___ \ /        (  <_> )  |_\   /\  ___/|  | \/
+[2025-09-14 16:35:22.063] \____|__  /___|  /____/|___  /__/____  >_______  /\____/|____/\_/  \___  >__|   
+[2025-09-14 16:35:22.063]         \/     \/          \/        \/        \/                      \/       
+[2025-09-14 16:35:22.063] [*] Challenge Endpoint: https://canine.tools/
+[2025-09-14 16:35:22.063] [*] Muting SSL verification...
+[2025-09-14 16:35:23.906] [*] PoW solved in 17 ms, lmfao
+[2025-09-14 16:35:27.092] <!doctype html><html lang="en"><head><title>Checking your browser...</title><link rel="stylesheet" href="/.within.website/x/xess/xess.min.css?cachebuster=v1.22.1"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex,nofollow"><style>
+[2025-09-14 16:35:27.092]         body,
+[2025-09-14 16:35:27.092]         html {
 (omitted for clearance)
 ````
 
-At the time of writing, this solver was working on Anubis's official website.  
+At the time of writing, this solver was working on Anubis's official website and all its sponsors.  
 I was too lazy to test it in other environments.  
 For educational purposes only.
+
 
 
